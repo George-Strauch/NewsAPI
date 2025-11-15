@@ -14,14 +14,12 @@ IMAGE_NAME="news-api-image"
 CONTAINER_NAME="news-api"
 BUILD_CONTEXT="."
 HOST_OPT_NEWS="/opt/news"
-CONTAINER_OPT_NEWS="/opt/news"
 
 # Set to "true" for background mode (default), "false" to attach and view logs.
 DETACHED=false
 
+git pull --rebase --autostash
 
-HOST_PORT=""
-CONTAINER_PORT=""
 
 # remove all previous artifacts
 if [ -d "News" ]; then
@@ -69,13 +67,13 @@ if [ "${DETACHED}" = true ]; then
     echo "Running container in detached mode..."
     docker run -d \
         --name "${CONTAINER_NAME}" \
-        -v /opt/news:/opt/news \
+        -v /opt/news_api:/opt/news_api \
         "${IMAGE_NAME}"
 else
     echo "Running container in attached mode..."
     echo "(Ctrl+C will stop the container)"
     docker run \
         --name "${CONTAINER_NAME}" \
-        -v /opt/news:/opt/news \
+        -v /opt/news_api:/opt/news_api \
         "${IMAGE_NAME}"
 fi
