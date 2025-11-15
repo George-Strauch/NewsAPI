@@ -27,9 +27,9 @@ CONTAINER_PORT=""
 if [ -d "News" ]; then
   rm -rf "News"
 fi
-# remove all previous artifacts
+
 if [ -d "NewsFE" ]; then
-  rm -rf "News"
+  rm -rf "NewsFE"
 fi
 
 if [ -f ".env" ]; then
@@ -43,26 +43,22 @@ fi
 find "." -type d -name "__pycache__" -exec rm -rf {} +
 find "." -type f -name "*.log*" -delete
 
-# NEW: remove old container and image if present
+# remove old container and image if present
 docker rm -f "${CONTAINER_NAME}" 2>/dev/null || true
 docker rmi -f "${IMAGE_NAME}" 2>/dev/null || true
 
-# Update host News repo
-echo "pulling most recent news collector"
-git pull --rebase --autostash
-
-echo "pulling most recent news collector"
-git -C "${HOST_OPT_NEWS}/News" pull --rebase --autostash
-
-echo "pulling most recent news front end"
-git -C "${HOST_OPT_NEWS}/NewsFE" pull --rebase --autostash
-
-# 2) copy stuff
 cp "${HOST_OPT_NEWS}/.env" .
-cp -r "${HOST_OPT_NEWS}/News" .
-cp -r "${HOST_OPT_NEWS}/NewsFE" .
+
+git clone git@github.com:George-Strauch/NewsFE.git
+git clone git@github.com:George-Strauch/News.git
 
 cp "News/requirements.txt" .
+
+echo "building the front end"
+cd NewsFE
+npm install
+npm run build
+cd ..
 
 # Build image
 DOCKER_BUILDKIT=1 docker build -t "${IMAGE_NAME}" "${BUILD_CONTEXT}"
