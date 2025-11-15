@@ -18,8 +18,11 @@ HOST_OPT_NEWS="/opt/news"
 # Set to "true" for background mode (default), "false" to attach and view logs.
 DETACHED=false
 
-git pull --rebase --autostash
+# Host/container ports for the API
+HOST_PORT=8000
+CONTAINER_PORT=8000
 
+git pull origin master
 
 # remove all previous artifacts
 if [ -d "News" ]; then
@@ -62,11 +65,11 @@ cd ..
 DOCKER_BUILDKIT=1 docker build -t "${IMAGE_NAME}" "${BUILD_CONTEXT}"
 
 # Run container
-# Determine run mode
 if [ "${DETACHED}" = true ]; then
     echo "Running container in detached mode..."
     docker run -d \
         --name "${CONTAINER_NAME}" \
+        -p "${HOST_PORT}:${CONTAINER_PORT}" \
         -v /opt/news_api:/opt/news_api \
         "${IMAGE_NAME}"
 else
@@ -74,6 +77,7 @@ else
     echo "(Ctrl+C will stop the container)"
     docker run \
         --name "${CONTAINER_NAME}" \
+        -p "${HOST_PORT}:${CONTAINER_PORT}" \
         -v /opt/news_api:/opt/news_api \
         "${IMAGE_NAME}"
 fi
