@@ -4,7 +4,7 @@ import logging
 import os
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -47,37 +47,44 @@ app = FastAPI(title="React + FastAPI App")
 # CORS (for dev; adjust for prod)
 app.add_middleware(
     CORSMiddleware,
-    # If you serve the frontend and API from the same origin (localhost:8000),
-    # CORS isn't strictly necessary for that, but keep this if you also hit
-    # the API from localhost:5173 or another domain.
-    # allow_origins=[
-    #     "http://localhost:5173",
-    #     "http://localhost:8000",
-    #     "https://yourdomain.com",
-    # ],
+    allow_origins=["*"],  # tighten this in prod
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# --------------------------------------------------------------------
+# API router (all under /api)
+# --------------------------------------------------------------------
 
-@app.get("/api/health")
+api_router = APIRouter(prefix="/api", tags=["api"])
+
+
+@api_router.get("/health")
 async def health_check():
     return {"status": "ok"}
 
+
+# Example sub-route: /api/articles/latest
+@api_router.get("/articles/latest")
+async def latest_articles():
+    # placeholder – wire to your DB later
+    return {"articles": []}
+
+
+app.include_router(api_router)
 
 # --------------------------------------------------------------------
 # Frontend static serving (Vite build)
 # --------------------------------------------------------------------
 
-# Important: we mount the ENTIRE dist directory at "/".
-# This way:
-#   /              -> dist/index.html     (via html=True)
-#   /assets/...    -> dist/assets/...
-#   /vite.svg      -> dist/vite.svg
+# Mount the ENTIRE dist directory at "/".
+# - /              -> dist/index.html     (via html=True)
+# - /assets/...    -> dist/assets/...
+# - /vite.svg      -> dist/vite.svg
 #
-# The API routes are defined BEFORE this mount, so /api/* requests
-# will be handled by FastAPI, not by StaticFiles.
+# Because we included the /api router above, any /api/* paths are handled
+# by FastAPI, and everything else falls through to the React app.
 if FRONTEND_DIST.exists() and INDEX_HTML.exists():
     logger.info("Mounting frontend from %s at /", FRONTEND_DIST)
     app.mount(
