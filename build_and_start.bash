@@ -16,7 +16,7 @@ BUILD_CONTEXT="."
 HOST_OPT_NEWS="/opt/news"
 
 # Set to "true" for background mode (default), "false" to attach and view logs.
-DETACHED=true
+DETACHED=false
 
 # Host/container ports for the API
 HOST_PORT=8000
