@@ -1,15 +1,15 @@
 from __future__ import annotations
 from fastapi import APIRouter, HTTPException
-from news_base.database.news_db import ArticleStorePG
+from src.api.dll.article_interface import ArticleInterface
 
 router = APIRouter(tags=["articles"])
-article_store = ArticleStorePG()
+ARTICLE_INTERFACE = ArticleInterface.get()
 
 
 @router.get("/articles/recent")
 async def recent_articles(n=10) -> dict:
     # placeholder – wire to your DB later
-    return {"results": article_store.get_most_recent(n, valid_only=True)}
+    return {"results": ARTICLE_INTERFACE.article_store.get_most_recent(n, valid_only=True)}
 
 
 @router.get("/articles/{article_id}")
