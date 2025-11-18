@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+from news_base.utils.startup import load_vars
+load_vars()
+
 import logging
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+
+from api import api_router
 
 # --------------------------------------------------------------------
 # Logging setup
@@ -32,10 +37,11 @@ FRONTEND_DIST = PROJECT_ROOT / "NewsFE" / "dist"        # .../newsAPI/NewsFE/dis
 INDEX_HTML = FRONTEND_DIST / "index.html"
 
 logger.info("BASE_DIR=%s", BASE_DIR)
+logger.info("PROJECT_ROOT=%s", PROJECT_ROOT)
 logger.info("FRONTEND_DIST=%s", FRONTEND_DIST)
 logger.info("INDEX_HTML=%s", INDEX_HTML)
 
-assert INDEX_HTML.exists(), "index.html not found at %s. Did you run `npm run build` in NewsFE?"
+assert INDEX_HTML.exists(), f"index.html not found at {INDEX_HTML}. Did you run `npm run build` in NewsFE?"
 
 # --------------------------------------------------------------------
 # FastAPI app
@@ -56,20 +62,7 @@ app.add_middleware(
 # API router (all under /api)
 # --------------------------------------------------------------------
 
-api_router = APIRouter(prefix="/api", tags=["api"])
-
-
-@api_router.get("/health")
-async def health_check():
-    return {"status": "ok"}
-
-
-@api_router.get("/articles/latest")
-async def latest_articles():
-    # placeholder – wire to your DB later
-    return {"articles": []}
-
-
+# All /api/* endpoints live in the api package
 app.include_router(api_router)
 
 # --------------------------------------------------------------------
@@ -87,7 +80,7 @@ if FRONTEND_DIST.exists() and INDEX_HTML.exists():
             name="assets",
         )
     else:
-        assert False, "assets directory not found"
+        raise RuntimeError(f"assets directory not found at {assets_dir}")
 
     # Optional: favicon, vite.svg, etc., if present
     favicon_path = FRONTEND_DIST / "favicon.ico"
@@ -121,8 +114,8 @@ if FRONTEND_DIST.exists() and INDEX_HTML.exists():
         Serve the React SPA for any path that isn't handled by /api.
         This fixes refresh / deep-linking on /home, /apidocs, etc.
         """
-        # Defensive: if someone somehow hits /api/* here, 404 instead of serving SPA
         if full_path.startswith("api/") or full_path == "api":
+            # Should normally be handled by API routers; if we get here, 404.
             raise HTTPException(status_code=404, detail="Not Found")
 
         return FileResponse(INDEX_HTML)
