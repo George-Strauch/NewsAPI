@@ -39,6 +39,8 @@ class SourceInterface:
             domain_counts = self.domain_store.count_all()
             self.last_count_update = time.time()
             self.domain_counts = domain_counts
+            print("done updating counts")
+
         return self.domain_counts
 
     @classmethod
