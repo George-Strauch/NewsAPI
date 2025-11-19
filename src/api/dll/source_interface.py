@@ -29,12 +29,15 @@ class SourceInterface:
         self.sitemap_counts = 67
         self.last_count_update = 0
         self.count_update_interval = 60 * 60
-        self.get_domain_counts()
+        self.get_domain_counts(force_get=True)
 
-    def get_domain_counts(self):
-        if time.time() - self.last_count_update < self.count_update_interval:
+    def get_domain_counts(self, force_get=False):
+        if time.time() - self.last_count_update > self.count_update_interval or force_get:
             print("updating counts")
+            delta = time.time() - self.last_count_update
+            print(f"source count delta: {delta}")
             domain_counts = self.domain_store.count_all()
+            self.last_count_update = time.time()
             self.domain_counts = domain_counts
         return self.domain_counts
 

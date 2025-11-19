@@ -26,10 +26,12 @@ class ArticleInterface:
         self.article_count = 67
         self.last_count_update = 0
         self.count_update_interval = 60 * 60
-        self.get_counts()
+        self.get_counts(force_get=True)
 
-    def get_counts(self):
-        if time.time() - self.last_count_update < self.count_update_interval:
+    def get_counts(self, force_get=False):
+        delta = time.time() - self.last_count_update
+        print(f"article count delta: {delta}")
+        if time.time() - self.last_count_update > self.count_update_interval or force_get:
             print("updating counts")
             counts = self.article_store.counts()
             self.article_count = counts['total']
